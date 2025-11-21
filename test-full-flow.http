@@ -1,0 +1,280 @@
+### Leave Management Workflow - Full Flow Test
+### Use with REST Client extension in VS Code or similar tools
+### Base URL
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Variables (will be set during execution)
+@workflowId = 
+@requestId = 
+@runId = 
+
+###############################################
+# STEP 0: Health Check
+###############################################
+
+### Health Check
+GET {{baseUrl}}/health
+
+###############################################
+# STEP 1: Apply for Leave (Creates Workflow)
+###############################################
+
+### Apply for Leave - User u1 (John Employee)
+POST {{baseUrl}}/leaves
+Content-Type: {{contentType}}
+
+{
+  "userId": "u1",
+  "leaveType": "CASUAL",
+  "startDate": "2025-11-25",
+  "endDate": "2025-11-26",
+  "reason": "Family function - Full flow test"
+}
+
+### Response will contain:
+### {
+###   "message": "Leave request submitted",
+###   "workflowId": "leave-u1-1234567890",
+###   "runId": "019aa730-fc3b-79c0-ad51-e0ebffae1061"
+### }
+### 
+### Copy the workflowId and requestId from the response
+### Wait 5-10 seconds for workflow to create the request record
+
+###############################################
+# STEP 2: Find Request by Workflow ID
+###############################################
+
+### Get Request by Workflow ID
+### Replace {{workflowId}} with the workflowId from Step 1
+GET {{baseUrl}}/leaves?workflowId=leave-u1-1763743145416
+
+### Alternative: Get All Requests
+GET {{baseUrl}}/leaves
+
+###############################################
+# STEP 3: Get Specific Request by Request ID
+###############################################
+
+### Get Leave Request by Request ID
+### Replace {{requestId}} with the requestId from Step 2
+GET {{baseUrl}}/leaves/leave-u1-1763743145416
+
+###############################################
+# STEP 4: Approve Leave Request
+###############################################
+
+### Approve Leave Request
+### Replace {{requestId}} with the actual requestId
+POST {{baseUrl}}/leaves/req-1763743145723-e2ipx2v1g/approve
+Content-Type: {{contentType}}
+
+{
+  "approverId": "u2",
+  "decision": "REJECT"
+}
+
+### Alternative: Reject Leave Request
+POST {{baseUrl}}/leaves/{{requestId}}/approve
+Content-Type: {{contentType}}
+
+{
+  "approverId": "u2",
+  "decision": "REJECT"
+}
+
+###############################################
+# STEP 5: Verify Final Status
+###############################################
+
+### Check Final Request Status
+GET {{baseUrl}}/leaves/{{requestId}}
+
+###############################################
+# ADDITIONAL TEST CASES
+###############################################
+
+### Test Case 1: Apply Leave - User u1, SICK Leave
+POST {{baseUrl}}/leaves
+Content-Type: {{contentType}}
+
+{
+  "userId": "u1",
+  "leaveType": "SICK",
+  "startDate": "2025-11-27",
+  "endDate": "2025-11-28",
+  "reason": "Medical appointment"
+}
+
+### Test Case 2: Apply Leave - User u1, EARNED Leave
+POST {{baseUrl}}/leaves
+Content-Type: {{contentType}}
+
+{
+  "userId": "u1",
+  "leaveType": "EARNED",
+  "startDate": "2025-12-01",
+  "endDate": "2025-12-05",
+  "reason": "Vacation"
+}
+
+### Test Case 3: Apply Leave - Invalid User
+POST {{baseUrl}}/leaves
+Content-Type: {{contentType}}
+
+{
+  "userId": "invalid-user",
+  "leaveType": "CASUAL",
+  "startDate": "2025-11-25",
+  "endDate": "2025-11-26",
+  "reason": "Test invalid user"
+}
+
+### Test Case 4: Apply Leave - Invalid Date Range
+POST {{baseUrl}}/leaves
+Content-Type: {{contentType}}
+
+{
+  "userId": "u1",
+  "leaveType": "CASUAL",
+  "startDate": "2025-11-26",
+  "endDate": "2025-11-25",
+  "reason": "Test invalid date range"
+}
+
+### Test Case 5: Apply Leave - Missing Fields
+POST {{baseUrl}}/leaves
+Content-Type: {{contentType}}
+
+{
+  "userId": "u1",
+  "leaveType": "CASUAL"
+}
+
+### Test Case 6: Approve with HR (u3) - Can approve any
+POST {{baseUrl}}/leaves/{{requestId}}/approve
+Content-Type: {{contentType}}
+
+{
+  "approverId": "u3",
+  "decision": "APPROVE"
+}
+
+### Test Case 7: Approve with Admin (u4) - Can approve any
+POST {{baseUrl}}/leaves/{{requestId}}/approve
+Content-Type: {{contentType}}
+
+{
+  "approverId": "u4",
+  "decision": "APPROVE"
+}
+
+### Test Case 8: Approve with Invalid Approver
+POST {{baseUrl}}/leaves/{{requestId}}/approve
+Content-Type: {{contentType}}
+
+{
+  "approverId": "invalid-approver",
+  "decision": "APPROVE"
+}
+
+### Test Case 9: Get Non-existent Request
+GET {{baseUrl}}/leaves/non-existent-request-id
+
+### Test Case 10: Approve Non-existent Request
+POST {{baseUrl}}/leaves/non-existent-request-id/approve
+Content-Type: {{contentType}}
+
+{
+  "approverId": "u2",
+  "decision": "APPROVE"
+}
+
+###############################################
+# COMPLETE FLOW EXAMPLE (Manual Steps)
+###############################################
+
+### 
+### FULL WORKFLOW TEST STEPS:
+### 
+### 1. Run "Apply for Leave" request above
+###    - Copy the workflowId from response
+###    - Wait 5-10 seconds for workflow to initialize
+### 
+### 2. Run "Get Request by Workflow ID" 
+###    - Replace workflowId with the one from step 1
+###    - Copy the requestId from response
+### 
+### 3. Run "Approve Leave Request"
+###    - Replace requestId with the one from step 2
+###    - Wait 3-5 seconds for workflow to process
+### 
+### 4. Run "Check Final Status"
+###    - Replace requestId with the one from step 2
+###    - Verify status is "APPROVED" or "REJECTED"
+### 
+### 5. Check Temporal Cloud UI:
+###    https://cloud.temporal.io/namespaces/leave-workflow-poc.hy9gi/workflows
+###    - Search for the workflowId to see workflow execution
+###
+
+###############################################
+# SAMPLE USERS
+###############################################
+
+### Available Test Users:
+### - u1: John Employee (Employee, Manager: u2)
+### - u2: Jane Manager (Manager, Manager: u3) - Can approve u1's requests
+### - u3: Bob HR (HR) - Can approve any request
+### - u4: Alice Admin (Admin) - Can approve any request
+
+###############################################
+# LEAVE TYPES
+###############################################
+
+### Available Leave Types:
+### - CASUAL
+### - SICK
+### - EARNED
+### - WELLNESS
+
+###############################################
+# EXPECTED RESPONSES
+###############################################
+
+### Apply Leave Success (202):
+### {
+###   "message": "Leave request submitted",
+###   "workflowId": "leave-u1-1763741596609",
+###   "runId": "019aa730-fc3b-79c0-ad51-e0ebffae1061"
+### }
+### 
+### Get Request Success (200):
+### {
+###   "id": "req-1763741596609-abc123",
+###   "userId": "u1",
+###   "leaveType": "CASUAL",
+###   "startDate": "2025-11-25",
+###   "endDate": "2025-11-26",
+###   "reason": "Family function",
+###   "status": "PENDING_APPROVAL",
+###   "workflowId": "leave-u1-1763741596609",
+###   "createdAt": "2025-11-21T15:32:34.000Z",
+###   "updatedAt": "2025-11-21T15:32:34.000Z"
+### }
+### 
+### Approve Success (200):
+### {
+###   "message": "Leave request approved",
+###   "requestId": "req-1763741596609-abc123"
+### }
+### 
+### Final Status (200):
+### {
+###   "id": "req-1763741596609-abc123",
+###   "status": "APPROVED",
+###   "approverId": "u2",
+###   ...
+### }
+

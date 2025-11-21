@@ -116,6 +116,14 @@ playwright/.cache/
 # Temporal specific
 .temporal/
 
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+leave-management.db
+leave-management.db-shm
+leave-management.db-wal
+
 # TypeScript
 *.tsbuildinfo
 
