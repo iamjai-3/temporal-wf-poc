@@ -152,7 +152,18 @@ src/
 └── types.ts          # TypeScript types
 ```
 
-## Architecture Pattern
+## Architecture
+
+![Architecture Diagram](./Architecture%20Diagram.png)
+
+The system architecture shows how the Leave Application Workflow is orchestrated using Temporal Cloud:
+
+- **Client/API Server** - Receives requests and initiates workflows
+- **Temporal Cloud** - Orchestrates workflows and manages state
+- **Worker Process** - Executes activities (database operations, email sending)
+- **Task Queue** - Routes tasks between Temporal Cloud and Workers
+- **PostgreSQL/SQLite** - Persistent data storage
+- **SMTP Provider** - Email notification service
 
 ### One Long-Lived Workflow Per User
 

@@ -48,7 +48,7 @@ Content-Type: {{contentType}}
 
 ### Get Request by Workflow ID
 ### Replace {{workflowId}} with the workflowId from Step 1
-GET {{baseUrl}}/leaves?workflowId=leave-u1-1763743145416
+GET {{baseUrl}}/leaves?workflowId=leave-u1-1763786820581
 
 ### Alternative: Get All Requests
 GET {{baseUrl}}/leaves
@@ -67,12 +67,12 @@ GET {{baseUrl}}/leaves/leave-u1-1763743145416
 
 ### Approve Leave Request
 ### Replace {{requestId}} with the actual requestId
-POST {{baseUrl}}/leaves/req-1763743145723-e2ipx2v1g/approve
+POST {{baseUrl}}/leaves/req-1763786820953-8zup53ruh/approve
 Content-Type: {{contentType}}
 
 {
   "approverId": "u2",
-  "decision": "REJECT"
+  "decision": "APPROVE"
 }
 
 ### Alternative: Reject Leave Request

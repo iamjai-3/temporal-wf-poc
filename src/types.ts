@@ -36,14 +36,14 @@ export interface LeaveRequest {
   id: string;
   userId: string;
   leaveType: LeaveType;
-  startDate: string; // ISO date string
-  endDate: string; // ISO date string
+  startDate: string;
+  endDate: string;
   reason: string;
   status: LeaveStatus;
   approverId?: string;
   workflowId?: string; // Temporal workflow ID
-  createdAt: string; // ISO timestamp
-  updatedAt: string; // ISO timestamp
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface LeaveBalance {
